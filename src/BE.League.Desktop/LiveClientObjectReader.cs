@@ -1,27 +1,40 @@
-﻿using System.Text.Json;
-using BE.League.Desktop.Connection;
+﻿﻿using BE.League.Desktop.Connection;
+using BE.League.Desktop.LiveClient;
+using BE.League.Desktop.LcuClient;
 using BE.League.Desktop.Models;
 
 namespace BE.League.Desktop;
 
 /// <summary>
-/// Verantwortlich für die Deserialisierung von JSON-Daten in Objekt-Modelle
+/// Unified object reader for League of Legends Desktop integration
+/// Provides access to both Live Client Data API and LCU API readers
+/// Backward compatible wrapper that delegates to specialized readers
 /// </summary>
 public sealed class LiveClientObjectReader
 {
-    private readonly ILeagueDesktopClient _gateway;
-
-    private readonly JsonSerializerOptions _jsonOptions;
+    private readonly LiveClient.LiveClientObjectReader _liveReader;
+    private readonly LcuObjectReader? _lcuReader;
 
     public LiveClientObjectReader(ILeagueDesktopClient gateway)
     {
-        this._gateway = gateway;
-        this._jsonOptions = new JsonSerializerOptions
+        if (gateway is LeagueDesktopClient client)
         {
-            PropertyNameCaseInsensitive = true,
-            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-            TypeInfoResolver = LeagueJsonContext.Default
-        };
+            _liveReader = new LiveClient.LiveClientObjectReader(client.Live);
+            _lcuReader = client.Lcu != null ? new LcuObjectReader(client.Lcu) : null;
+        }
+        else
+        {
+            // Fallback for custom implementations
+            _liveReader = new LiveClient.LiveClientObjectReader(new LiveClientApi());
+            try
+            {
+                _lcuReader = new LcuObjectReader();
+            }
+            catch (InvalidOperationException)
+            {
+                _lcuReader = null;
+            }
+        }
     }
 
     public LiveClientObjectReader(LeagueDesktopOptions? options = null)
@@ -33,145 +46,85 @@ public sealed class LiveClientObjectReader
     {
     }
 
+    /// <summary>
+    /// Access to Live Client Data API reader (In-Game)
+    /// </summary>
+    public LiveClient.LiveClientObjectReader Live => _liveReader;
 
-    private T? Deserialize<T>(string? json) where T : class
-    {
-        if (string.IsNullOrWhiteSpace(json)) return null;
+    /// <summary>
+    /// Access to LCU API reader (Client/Lobby)
+    /// Returns null if League Client is not running
+    /// </summary>
+    public LcuObjectReader? Lcu => _lcuReader;
 
-        try
-        {
-            return JsonSerializer.Deserialize<T>(json, _jsonOptions);
-        }
-        catch (JsonException ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Live Client Data API JSON Error: {ex.Message}");
-            return null;
-        }
-    }
+    // ========== Live Client Data API Methods (Delegated for backward compatibility) ==========
 
-    // ========== Live Client Data API Methods ==========
+    public Task<AllGameData?> GetAllGameDataAsync(CancellationToken ct = default)
+        => _liveReader.GetAllGameDataAsync(ct);
 
-    public async Task<AllGameData?> GetAllGameDataAsync(CancellationToken ct = default)
-    {
-        var json = await _gateway.GetAllGameDataJsonAsync(ct);
-        return Deserialize<AllGameData>(json);
-    }
+    public Task<ActivePlayer?> GetActivePlayerAsync(CancellationToken ct = default)
+        => _liveReader.GetActivePlayerAsync(ct);
 
+    public Task<string?> GetActivePlayerNameAsync(CancellationToken ct = default)
+        => _liveReader.GetActivePlayerNameAsync(ct);
 
-    public async Task<ActivePlayer?> GetActivePlayerAsync(CancellationToken ct = default)
-    {
-        var json = await _gateway.GetActivePlayerJsonAsync(ct);
-        return Deserialize<ActivePlayer>(json);
-    }
+    public Task<Abilities?> GetActivePlayerAbilitiesAsync(CancellationToken ct = default)
+        => _liveReader.GetActivePlayerAbilitiesAsync(ct);
 
-    public async Task<string?> GetActivePlayerNameAsync(CancellationToken ct = default)
-    {
-        return await _gateway.GetActivePlayerNameJsonAsync(ct);
-    }
+    public Task<FullRunes?> GetActivePlayerRunesAsync(CancellationToken ct = default)
+        => _liveReader.GetActivePlayerRunesAsync(ct);
 
-    public async Task<Abilities?> GetActivePlayerAbilitiesAsync(CancellationToken ct = default)
-    {
-        var json = await _gateway.GetActivePlayerAbilitiesJsonAsync(ct);
-        return Deserialize<Abilities>(json);
-    }
+    public Task<List<Player>?> GetPlayerListAsync(CancellationToken ct = default)
+        => _liveReader.GetPlayerListAsync(ct);
 
-    public async Task<FullRunes?> GetActivePlayerRunesAsync(CancellationToken ct = default)
-    {
-        var json = await _gateway.GetActivePlayerRunesJsonAsync(ct);
-        return Deserialize<FullRunes>(json);
-    }
+    public Task<Scores?> GetPlayerScoresAsync(string summonerName, CancellationToken ct = default)
+        => _liveReader.GetPlayerScoresAsync(summonerName, ct);
 
+    public Task<SummonerSpells?> GetPlayerSummonerSpellsAsync(string summonerName, CancellationToken ct = default)
+        => _liveReader.GetPlayerSummonerSpellsAsync(summonerName, ct);
 
-    public async Task<List<Player>?> GetPlayerListAsync(CancellationToken ct = default)
-    {
-        var json = await _gateway.GetPlayerListJsonAsync(ct);
-        return Deserialize<List<Player>>(json);
-    }
+    public Task<PlayerRunes?> GetPlayerMainRunesAsync(string summonerName, CancellationToken ct = default)
+        => _liveReader.GetPlayerMainRunesAsync(summonerName, ct);
 
+    public Task<List<Item>?> GetPlayerItemsAsync(string summonerName, CancellationToken ct = default)
+        => _liveReader.GetPlayerItemsAsync(summonerName, ct);
 
-    public async Task<Scores?> GetPlayerScoresAsync(string summonerName, CancellationToken ct = default)
-    {
-        var json = await _gateway.GetPlayerScoresJsonAsync(summonerName, ct);
-        return Deserialize<Scores>(json);
-    }
+    public Task<Event?> GetEventDataAsync(CancellationToken ct = default)
+        => _liveReader.GetEventDataAsync(ct);
 
+    public Task<GameData?> GetGameStatsAsync(CancellationToken ct = default)
+        => _liveReader.GetGameStatsAsync(ct);
 
-    public async Task<SummonerSpells?> GetPlayerSummonerSpellsAsync(string summonerName, CancellationToken ct = default)
-    {
-        var json = await _gateway.GetPlayerSummonerSpellsJsonAsync(summonerName, ct);
-        return Deserialize<SummonerSpells>(json);
-    }
-
-
-    public async Task<PlayerRunes?> GetPlayerMainRunesAsync(string summonerName, CancellationToken ct = default)
-    {
-        var json = await _gateway.GetPlayerMainRunesJsonAsync(summonerName, ct);
-        return Deserialize<PlayerRunes>(json);
-    }
-
-
-    public async Task<List<Item>?> GetPlayerItemsAsync(string summonerName, CancellationToken ct = default)
-    {
-        var json = await _gateway.GetPlayerItemsJsonAsync(summonerName, ct);
-        return Deserialize<List<Item>>(json);
-    }
-
-
-    public async Task<Event?> GetEventDataAsync(CancellationToken ct = default)
-    {
-        var json = await _gateway.GetEventDataJsonAsync(ct);
-        return Deserialize<Event>(json);
-    }
-
-
-    public async Task<GameData?> GetGameStatsAsync(CancellationToken ct = default)
-    {
-        var json = await _gateway.GetGameStatsJsonAsync(ct);
-        return Deserialize<GameData>(json);
-    }
-
-    // ========== League Client API (LCU) Methods ==========
+    // ========== League Client API (LCU) Methods (Delegated for backward compatibility) ==========
 
     /// <summary>
     /// Get current lobby information
     /// </summary>
-    public async Task<Lobby?> GetLobbyAsync(CancellationToken ct = default)
-    {
-        var json = await _gateway.GetLobbyJsonAsync(ct);
-        return Deserialize<Lobby>(json);
-    }
+    public Task<Lobby?> GetLobbyAsync(CancellationToken ct = default)
+        => _lcuReader?.GetLobbyAsync(ct) ?? Task.FromResult<Lobby?>(null);
 
     /// <summary>
     /// Get current champion select session
     /// </summary>
-    public async Task<ChampSelectSession?> GetChampSelectSessionAsync(CancellationToken ct = default)
-    {
-        var json = await _gateway.GetChampSelectSessionJsonAsync(ct);
-        return Deserialize<ChampSelectSession>(json);
-    }
+    public Task<ChampSelectSession?> GetChampSelectSessionAsync(CancellationToken ct = default)
+        => _lcuReader?.GetChampSelectSessionAsync(ct) ?? Task.FromResult<ChampSelectSession?>(null);
 
     /// <summary>
     /// Get ready check state
     /// </summary>
-    public async Task<ReadyCheckDto?> GetReadyCheckAsync(CancellationToken ct = default)
-    {
-        var json = await _gateway.GetReadyCheckJsonAsync(ct);
-        return Deserialize<ReadyCheckDto>(json);
-    }
+    public Task<ReadyCheckDto?> GetReadyCheckAsync(CancellationToken ct = default)
+        => _lcuReader?.GetReadyCheckAsync(ct) ?? Task.FromResult<ReadyCheckDto?>(null);
 
     /// <summary>
     /// Accept ready check (when game is found)
     /// </summary>
-    public async Task<bool> AcceptReadyCheckAsync(CancellationToken ct = default)
-    {
-        return await _gateway.AcceptReadyCheckAsync(ct);
-    }
+    public Task<bool> AcceptReadyCheckAsync(CancellationToken ct = default)
+        => _lcuReader?.AcceptReadyCheckAsync(ct) ?? Task.FromResult(false);
 
     /// <summary>
     /// Decline ready check
     /// </summary>
-    public async Task<bool> DeclineReadyCheckAsync(CancellationToken ct = default)
-    {
-        return await _gateway.DeclineReadyCheckAsync(ct);
-    }
+    public Task<bool> DeclineReadyCheckAsync(CancellationToken ct = default)
+        => _lcuReader?.DeclineReadyCheckAsync(ct) ?? Task.FromResult(false);
 }
+
