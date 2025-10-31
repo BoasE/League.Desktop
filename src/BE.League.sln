@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{00
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BE.League.Desktop.AutoAccept", "Examples\BE.League.Desktop.AutoAccept\BE.League.Desktop.AutoAccept.csproj", "{267917BB-DB29-43AF-8B42-F8CE40981E74}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BE.League.Desktop.IntegrationTests", "BE.League.Desktop.IntegrationTests\BE.League.Desktop.IntegrationTests.csproj", "{0AED4C40-4A62-42A2-9106-2E09C128FEED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{267917BB-DB29-43AF-8B42-F8CE40981E74}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{267917BB-DB29-43AF-8B42-F8CE40981E74}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{267917BB-DB29-43AF-8B42-F8CE40981E74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AED4C40-4A62-42A2-9106-2E09C128FEED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AED4C40-4A62-42A2-9106-2E09C128FEED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AED4C40-4A62-42A2-9106-2E09C128FEED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AED4C40-4A62-42A2-9106-2E09C128FEED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{509728FE-5B7F-4325-AAF4-2B4991E28C76} = {002C71C7-369D-4A84-BEE8-30F577A04728}
