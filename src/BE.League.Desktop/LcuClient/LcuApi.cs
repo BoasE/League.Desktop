@@ -8,7 +8,7 @@ namespace BE.League.Desktop.LcuClient;
 /// Provides access to lobby, champion select, and matchmaking features
 /// Requires connection info from running League Client (lockfile)
 /// </summary>
-public sealed class LcuApi : IDisposable
+public class LcuApi : IDisposable
 {
     private readonly HttpClient _httpClient;
     private readonly LeagueClientConnectionInfo _connectionInfo;

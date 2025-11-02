@@ -1,14 +1,14 @@
 ﻿# League of Legends - Auto Accept
 
-Automatically accepts ready checks in League of Legends with configurable delay and auto-exit options.
+Automatically accepts ready checks in League of Legends with a clean, modular architecture.
 
 ## Features
 
-- 🔔 **Automatic Ready Check Detection** - Continuously monitors for ready checks
-- ⏱️ **Configurable Delay** - Set a custom delay before accepting (default: 2000ms)
-- 🚪 **Auto-Exit** - Optionally exit after accepting (default: enabled)
+- 🔔 **Automatic Ready Check Detection** - Continuously monitors for ready checks in the lobby
+- ⏱️ **Configurable Delay** - Set a custom delay before accepting (default: 2 seconds)
 - 📊 **Live Status Display** - Shows lobby information using Spectre.Console
-- ⚙️ **Settings** - Configurable via command line or interactive prompts
+- ⌨️ **Keyboard Control** - Press ESC to exit monitoring
+- 🎯 **Modular Architecture** - Clean separation of concerns
 
 ## Requirements
 
@@ -27,6 +27,7 @@ Automatically accepts ready checks in League of Legends with configurable delay 
    dotnet run
    ```
 3. The application will automatically accept the ready check when a game is found
+4. Press **ESC** to exit at any time
 
 ### Build & Publish
 
@@ -50,54 +51,293 @@ bin\Release\net9.0\win-x64\publish\BE.League.Desktop.AutoAccept.exe
 dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
 ```
 
-## Configuration
+## Architecture
 
-### Default Settings
+The application follows clean code principles with a modular structure:
 
-```csharp
-var settings = new AcceptSettings(
-    DelayMs: 2000,      // Wait 2 seconds before accepting
-    AutoExit: true      // Exit after accepting
-);
+### Project Structure
+
+```
+BE.League.Desktop.AutoAccept/
+├── Program.cs           # Application entry point
+├── MonitorLoop.cs       # Main monitoring logic
+└── Displays.cs          # UI rendering and table creation
 ```
 
-### Customize Settings
+### Core Components
 
-Edit `Program.cs` to change the default behavior:
+#### 1. **Program.cs**
+The entry point that:
+- Sets up cancellation token handling (Ctrl+C)
+- Displays the application header
+- Starts the monitoring loop
 
 ```csharp
-// No delay, stay running after accept
-var settings = new AcceptSettings(DelayMs: 0, AutoExit: false);
+var cts = new CancellationTokenSource();
+Console.CancelKeyPress += (_, e) =>
+{
+    AnsiConsole.WriteLine("Ending...");
+    e.Cancel = true;
+    cts.Cancel();
+};
 
-// 5 second delay, exit after accept
-var settings = new AcceptSettings(DelayMs: 5000, AutoExit: true);
+Displays.WriteHeader();
+await MonitorLoop.Run(cts.Token);
+```
+
+#### 2. **MonitorLoop.cs**
+Main business logic that:
+- Monitors the lobby status
+- Detects ready checks
+- Handles the accept flow with configurable delay
+- Manages keyboard input (ESC to exit)
+
+Key methods:
+- `Run(CancellationToken)` - Main entry point
+- `MonitorLobby(CancellationToken)` - Lobby monitoring loop
+- `ReadCheck(...)` - Ready check detection and handling
+- `Accept(...)` - Accept logic
+- `CanClickAccept(ReadyCheckDto?)` - Validation logic
+
+#### 3. **Displays.cs**
+UI rendering layer that:
+- Creates all visual elements using Spectre.Console
+- Provides consistent styling across the application
+- Separates presentation from business logic
+
+Available methods:
+- `WriteHeader()` - App header with ASCII art
+- `CreateStatusTable(...)` - Main status display
+- `GameFoundNotification(int)` - Game found notification
+- `WriteAcceptingNotification(...)` - Accepting status
+- `WriteSuccessNotification(...)` - Success message
+- `WriteError(...)` - Error message
+
+### Flow Diagram
+
+```
+Start
+  │
+  ├─> Display Header (Displays.WriteHeader)
+  │
+  ├─> Start Monitor Loop (MonitorLoop.Run)
+  │    │
+  │    ├─> Poll Lobby Status every 500ms
+  │    │
+  │    ├─> Check for ESC key press → Exit
+  │    │
+  │    ├─> Update Status Display (Displays.CreateStatusTable)
+  │    │
+  │    ├─> Detect Ready Check (ReadCheck)
+  │    │    │
+  │    │    ├─> Game Found? → Show Notification
+  │    │    │
+  │    │    ├─> Wait 2 seconds (configurable delay)
+  │    │    │
+  │    │    ├─> Validate Ready Check still active
+  │    │    │
+  │    │    ├─> Accept Ready Check
+  │    │    │    │
+  │    │    │    ├─> Success → Show Success Message
+  │    │    │    └─> Failed → Show Error Message
+  │    │    │
+  │    │    └─> Return to monitoring
+  │    │
+  │    └─> Repeat until ESC or Ctrl+C
+  │
+  └─> End
 ```
 
 ## Display Information
 
-The application shows:
-- **Ready Check Status** - Current state of ready check detection
+### Status Display
+
+The status table shows:
 - **Lobby Information** - Game mode and player count
-- **Start Status** - Whether the lobby can start a game
-- **Elapsed Time** - Time since last check
-- **Timestamp** - Current time
+- **Status** - Current monitoring state:
+  - "Warte auf Lobby start..." - Lobby ready to start
+  - "Prüfe auf Ready Check..." - Actively monitoring
+  - "Keine Lobby gefunden..." - Not in a lobby
+
+### Example Output
+
+**Application Start:**
+```
+   _         _              _                         _   
+  /_\ _   _| |_ ___       /_\   ___ ___ ___ _ __ | |_ 
+ //_\\| | | | __/ _ \    //_\\ / __/ __/ _ \ '_ \| __|
+/  _  \ |_| | || (_) |  /  _  \ (_| (_|  __/ |_) | |_ 
+\_/ \_/\__,_|\__\___/   \_/ \_/\___\___\___| .__/ \__|
+                                            |_|        
+
+━━━━━ Simple Ready Check and autoaccepting new games ━━━━━
+
+╭────────────────────────────────────╮
+│           STATUS                   │
+├────────────────────────────────────┤
+│ Lobby: ARAM 5 Spieler              │
+│  Prüfe auf Ready Check...          │
+╰────────────────────────────────────╯
+```
+
+**Game Found:**
+```
+╔════════════════════════════════════╗
+║           STATUS                   ║
+╠════════════════════════════════════╣
+║ 🔔 SPIEL GEFUNDEN! (#1)            ║
+║ 14:23:45                           ║
+║ Akzeptiere das Spiel in 2 Sekun...║
+╚════════════════════════════════════╝
+```
+
+**Accepting:**
+```
+╭────────────────────────────────────╮
+│        AKZEPTIERE...               │
+├────────────────────────────────────┤
+│ ✓ Sende Accept-Befehl...           │
+╰────────────────────────────────────╯
+```
+
+**Success:**
+```
+╔════════════════════════════════════╗
+║           ERFOLG                   ║
+╠════════════════════════════════════╣
+║ ✓ ERFOLGREICH AKZEPTIERT!          ║
+║ 14:23:47                           ║
+╚════════════════════════════════════╝
+```
+
+**Error (if accept fails):**
+```
+╭────────────────────────────────────╮
+│           FEHLER                   │
+├────────────────────────────────────┤
+│ ✗ Konnte nicht akzeptieren         │
+╰────────────────────────────────────╯
+```
+
+### Color Coding
+
+The application uses color-coded messages:
+- 🟢 **Green** - Success states (game found, accepted)
+- 🟡 **Yellow** - Normal monitoring state
+- 🔴 **Red** - Error states
+- ⚪ **Grey** - Information text (timestamps, details)
+
+## Configuration
+
+### Delay Configuration
+
+Currently, the delay is hardcoded in `MonitorLoop.cs`:
+
+```csharp
+// Wait 2 seconds before accepting
+await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+```
+
+To customize the delay, modify this value in the `ReadCheck` method.
+
+### Future Enhancements
+
+Potential configuration options:
+- Command line arguments for delay
+- Settings file (JSON/YAML)
+- Interactive configuration on startup
+- Auto-exit after accept option
 
 ## Technical Details
 
-### Architecture
+### API Integration
 
-The application uses:
-- `LiveClientObjectReader` - Main API client for LCU (League Client API)
-- `Spectre.Console` - Rich console UI with tables and formatting
-- `LeagueJsonContext` - JSON Source Generator for AOT/Trimming support
+The application uses the unified `LiveClientObjectReader` which provides access to:
+- **LCU API** (League Client Update) - For lobby and ready check operations
+- **Live Client Data API** - For in-game data (not used in this example)
 
-### API Endpoints Used
+### LCU Endpoints Used
 
-- `GET /lol-lobby/v2/lobby` - Current lobby information
-- `GET /lol-matchmaking/v1/ready-check` - Ready check state
-- `POST /lol-matchmaking/v1/ready-check/accept` - Accept ready check
+1. **`GET /lol-lobby/v2/lobby`**
+   - Retrieves current lobby information
+   - Returns: Game mode, player count, can start status
 
-### Connection Flow
+2. **`GET /lol-matchmaking/v1/ready-check`**
+   - Gets ready check state
+   - Returns: State ("InProgress", etc.), player accept status
+
+3. **`POST /lol-matchmaking/v1/ready-check/accept`**
+   - Accepts the ready check
+   - Returns: Boolean success status
+
+### Connection Details
+
+- **LCU Port**: Dynamic (read from lockfile)
+- **LCU Protocol**: HTTPS with self-signed certificate
+- **Authentication**: Basic Auth (riot:password from lockfile)
+- **Lockfile Location**: `%LOCALAPPDATA%\Riot Games\League of Legends\lockfile`
+
+### Error Handling
+
+The application handles errors gracefully:
+- **Network errors**: Silently continues monitoring
+- **API errors**: Displays error message, continues monitoring
+- **Cancellation**: Properly cleans up on Ctrl+C or ESC
+
+## Dependencies
+
+- **BE.League.Desktop** - Core library for League of Legends API integration
+- **Spectre.Console** (v0.49.1) - Rich console UI framework
+
+## Troubleshooting
+
+### "Keine Lobby gefunden"
+- Ensure League of Legends client is running
+- Create or join a lobby before running the application
+- Check that the lockfile exists in `%LOCALAPPDATA%\Riot Games\League of Legends\`
+
+### Ready Check Not Detected
+- Make sure you're in queue (not just in lobby)
+- The application polls every 500ms, there may be a slight delay
+- Check that the League client is responding
+
+### Application Won't Exit
+- Press **ESC** to gracefully exit the monitoring loop
+- Use **Ctrl+C** for immediate termination
+
+## Development
+
+### Adding New Features
+
+To add new functionality:
+
+1. **Business Logic** → Add to `MonitorLoop.cs`
+2. **UI Elements** → Add to `Displays.cs`
+3. **Configuration** → Update `Program.cs`
+
+Example: Adding sound notifications
+
+```csharp
+// In Displays.cs
+public static void PlaySound()
+{
+    Console.Beep(800, 300);
+}
+
+// In MonitorLoop.cs, after game found
+Displays.PlaySound();
+```
+
+### Code Style
+
+The codebase follows:
+- **Clean Code** principles (readable, self-documenting)
+- **Single Responsibility** (each class/method has one job)
+- **Separation of Concerns** (UI, logic, data access separated)
+
+## License
+
+This is an example application demonstrating the `BE.League.Desktop` library usage.
 
 1. Detects running League Client process
 2. Reads `lockfile` for connection details (port, password)
