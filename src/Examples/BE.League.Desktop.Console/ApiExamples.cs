@@ -1,5 +1,6 @@
 using BE.League.Desktop;
 using BE.League.Desktop.Connection;
+using BE.League.Desktop.LiveClient;
 
 namespace BE.League.Desktop.Console;
 

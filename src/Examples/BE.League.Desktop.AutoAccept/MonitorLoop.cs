@@ -1,4 +1,6 @@
-﻿using BE.League.Desktop.Models;
+﻿using BE.League.Desktop.LcuClient;
+using BE.League.Desktop.LiveClient;
+using BE.League.Desktop.Models;
 using Spectre.Console;
 
 namespace BE.League.Desktop.AutoAccept;
@@ -6,6 +8,7 @@ namespace BE.League.Desktop.AutoAccept;
 public static class MonitorLoop
 {
     private static readonly LiveClientObjectReader _reader = new();
+    private static readonly LcuObjectReader _lcu = new();
 
     public static async Task Run(CancellationToken cancellationToken)
     {
@@ -17,7 +20,7 @@ public static class MonitorLoop
         var started = new DateTimeOffset();
         var acceptCount = 0;
 
-        Lobby? lobbyDto = await _reader.GetLobbyAsync(cancellationToken);
+        Lobby? lobbyDto = await _lcu.GetLobbyAsync(cancellationToken);
 
         await AnsiConsole
             .Live(Displays.CreateStatusTable(lobbyDto, started, acceptCount))
@@ -35,7 +38,7 @@ public static class MonitorLoop
                         }
                     }
 
-                    lobbyDto = await _reader.GetLobbyAsync(cancellationToken);
+                    lobbyDto = await _lcu.GetLobbyAsync(cancellationToken);
                     ctx.UpdateTarget(Displays.CreateStatusTable(lobbyDto, started, acceptCount));
 
                     try
@@ -60,7 +63,7 @@ public static class MonitorLoop
         LiveDisplayContext ctx, int acceptCount)
     {
         ReadyCheckDto? readyCheck;
-        readyCheck = await reader.GetReadyCheckAsync(cancellationToken);
+        readyCheck = await _lcu.GetReadyCheckAsync(cancellationToken);
 
         if (CanClickAccept(readyCheck))
         {
@@ -71,7 +74,7 @@ public static class MonitorLoop
 
             await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
 
-            readyCheck = await reader.GetReadyCheckAsync(cancellationToken);
+            readyCheck = await _lcu.GetReadyCheckAsync(cancellationToken);
 
             if (CanClickAccept(readyCheck))
             {
@@ -86,7 +89,7 @@ public static class MonitorLoop
     {
         Displays.WriteAcceptingNotification(ctx);
 
-        var accepted = await reader.AcceptReadyCheckAsync(cancellationToken);
+        var accepted = await _lcu.AcceptReadyCheckAsync(cancellationToken);
 
         if (accepted)
         {

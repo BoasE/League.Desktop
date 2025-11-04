@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using BE.League.Desktop.Connection;
 using BE.League.Desktop.Models;
 
 namespace BE.League.Desktop.LiveClient;
@@ -12,9 +13,25 @@ public sealed class LiveClientObjectReader
     private readonly ILiveClientApi _api;
     private readonly JsonSerializerOptions _jsonOptions;
 
+    public ILiveClientApi Api => _api;
+    
     public LiveClientObjectReader(ILiveClientApi? api = null)
     {
         _api = api ?? new LiveClientApi();
+        _jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+            TypeInfoResolver = LeagueJsonContext.Default
+        };
+    }
+
+    public LiveClientObjectReader(LeagueDesktopOptions options)
+    {
+        _api = new LiveClientApi(
+            baseUrl: options.LiveClientBaseUrl,
+            timeout: options.Timeout);
+
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
@@ -109,4 +126,3 @@ public sealed class LiveClientObjectReader
         return Deserialize<GameData>(json);
     }
 }
-

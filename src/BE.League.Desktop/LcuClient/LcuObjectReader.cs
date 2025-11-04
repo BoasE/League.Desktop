@@ -13,6 +13,8 @@ public sealed class LcuObjectReader
     private readonly ILcuApi _api;
     private readonly JsonSerializerOptions _jsonOptions;
 
+    public ILcuApi Api => _api;
+
     public LcuObjectReader(ILcuApi? api = null, LeagueClientConnectionInfo? connectionInfo = null)
     {
         _api = api ?? new LcuApi(connectionInfo);
@@ -82,4 +84,3 @@ public sealed class LcuObjectReader
         return await _api.DeclineReadyCheckAsync(ct);
     }
 }
-

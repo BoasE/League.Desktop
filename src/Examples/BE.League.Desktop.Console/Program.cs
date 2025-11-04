@@ -1,4 +1,6 @@
 ﻿using BE.League.Desktop;
+using BE.League.Desktop.LcuClient;
+using BE.League.Desktop.LiveClient;
 using BE.League.Desktop.Models;
 using Spectre.Console;
 
@@ -17,7 +19,8 @@ AnsiConsole.Write(
 AnsiConsole.MarkupLine("");
 
 // Create the Live Client Reader
-var reader = new LiveClientObjectReader();
+var lcuApi = new LcuObjectReader();
+var live = new LiveClientObjectReader();
 
 AnsiConsole.Status()
     .Start("Initialisiere League Client Verbindung...", ctx =>
@@ -47,7 +50,7 @@ await AnsiConsole.Live(CreateWaitingTable())
             try
             {
                 // Try to get game data first
-                var allGameData = await reader.GetAllGameDataAsync();
+                var allGameData = await live.GetAllGameDataAsync();
 
                 if (allGameData != null)
                 {
@@ -59,18 +62,18 @@ await AnsiConsole.Live(CreateWaitingTable())
                 else
                 {
                     // ========== NICHT IM SPIEL - PRÜFE LOBBY ==========
-                    var lobby = await reader.GetLobbyAsync();
+                    var lobby = await lcuApi.GetLobbyAsync();
 
                     if (lobby != null)
                     {
                         // ========== IN LOBBY ==========
-                        var champSelect = await reader.GetChampSelectSessionAsync();
-                        var readyCheck = await reader.GetReadyCheckAsync();
+                        var champSelect = await lcuApi.GetChampSelectSessionAsync();
+                        var readyCheck = await lcuApi.GetReadyCheckAsync();
 
                         // Handle auto-accept
                         if (readyCheck != null && readyCheck.State == "InProgress")
                         {
-                            var accepted = await reader.AcceptReadyCheckAsync();
+                            var accepted = await lcuApi.AcceptReadyCheckAsync();
                             if (accepted)
                             {
                                 AnsiConsole.MarkupLine("[green]✓ Ready Check akzeptiert![/]");
@@ -512,7 +515,7 @@ while (true)
     try
     {
         // Try to get game data first
-        var allGameData = await reader.GetAllGameDataAsync();
+        var allGameData = await live.GetAllGameDataAsync();
 
         if (allGameData != null)
         {
@@ -541,7 +544,7 @@ while (true)
         else
         {
             // ========== NICHT IM SPIEL - PRÜFE LOBBY ==========
-            var lobby = await reader.GetLobbyAsync();
+            var lobby = await lcuApi.GetLobbyAsync();
 
             if (lobby != null)
             {
@@ -556,7 +559,7 @@ while (true)
                 Console.WriteLine();
 
                 // Check for champion select
-                var champSelect = await reader.GetChampSelectSessionAsync();
+                var champSelect = await lcuApi.GetChampSelectSessionAsync();
                 if (champSelect != null)
                 {
                     DisplayChampSelect(champSelect);
@@ -564,10 +567,10 @@ while (true)
                 }
 
                 // Check for ready check and auto-accept
-                var readyCheck = await reader.GetReadyCheckAsync();
+                var readyCheck = await lcuApi.GetReadyCheckAsync();
                 if (readyCheck != null)
                 {
-                    await HandleReadyCheck(reader, readyCheck);
+                    await HandleReadyCheck(lcuApi, readyCheck);
                     Console.WriteLine();
                 }
 
@@ -779,7 +782,7 @@ static void DisplayChampSelect(ChampSelectSession session)
     Console.WriteLine("└────────────────────────────────────────────────────────────────┘");
 }
 
-static async Task HandleReadyCheck(LiveClientObjectReader reader, ReadyCheckDto readyCheck)
+static async Task HandleReadyCheck(LcuObjectReader reader, ReadyCheckDto readyCheck)
 {
     if (readyCheck.State == "InProgress")
     {

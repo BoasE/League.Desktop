@@ -6,7 +6,7 @@ namespace BE.League.Desktop.IntegrationTests;
 /// Integration tests for LCU (League Client Update) API.
 /// PREREQUISITE: Must be in League Client (can be in lobby or menu).
 /// </summary>
-public class WhenInLeagueClient : IDisposable
+public class WhenInLeagueClient
 {
     private readonly LeagueDesktopClient? _sut;
     private readonly bool _isClientRunning;
@@ -39,7 +39,7 @@ public class WhenInLeagueClient : IDisposable
         Assert.NotNull(_sut);
 
         // This should not throw even if not in lobby (returns null/error response)
-        await _sut.GetLobbyJsonAsync();
+        await _sut.LcuClient.Api.GetLobbyJsonAsync();
 
         // Test passes if no exception is thrown
         Assert.True(true, "LCU API call completed without exception");
@@ -52,7 +52,7 @@ public class WhenInLeagueClient : IDisposable
         Assert.NotNull(_sut);
 
         // This should not throw even if not in champ select
-        await _sut.GetChampSelectSessionJsonAsync();
+        await _sut.LcuClient.Api.GetChampSelectSessionJsonAsync();
 
         // Test passes if no exception is thrown
         Assert.True(true, "LCU API call completed without exception");
@@ -65,15 +65,9 @@ public class WhenInLeagueClient : IDisposable
         Assert.NotNull(_sut);
 
         // This should not throw even if no ready check active
-        await _sut.GetReadyCheckJsonAsync();
+        await _sut.LcuClient.Api.GetReadyCheckJsonAsync();
 
         // Test passes if no exception is thrown
         Assert.True(true, "LCU API call completed without exception");
     }
-
-    public void Dispose()
-    {
-        _sut?.Dispose();
-    }
 }
-
