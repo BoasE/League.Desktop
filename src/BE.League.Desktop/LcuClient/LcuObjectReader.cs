@@ -10,10 +10,10 @@ namespace BE.League.Desktop.LcuClient;
 /// </summary>
 public sealed class LcuObjectReader
 {
-    private readonly LcuApi _api;
+    private readonly ILcuApi _api;
     private readonly JsonSerializerOptions _jsonOptions;
 
-    public LcuObjectReader(LcuApi? api = null, LeagueClientConnectionInfo? connectionInfo = null)
+    public LcuObjectReader(ILcuApi? api = null, LeagueClientConnectionInfo? connectionInfo = null)
     {
         _api = api ?? new LcuApi(connectionInfo);
         _jsonOptions = new JsonSerializerOptions

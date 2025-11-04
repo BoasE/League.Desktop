@@ -5,7 +5,7 @@
 /// Provides real-time game data while a match is running
 /// No authentication required
 /// </summary>
-public class LiveClientApi : IDisposable
+public sealed class LiveClientApi : IDisposable, ILiveClientApi
 {
     private readonly HttpClient _httpClient;
     private const string DefaultBaseUrl = "https://127.0.0.1:2999";

@@ -9,10 +9,10 @@ namespace BE.League.Desktop.LiveClient;
 /// </summary>
 public sealed class LiveClientObjectReader
 {
-    private readonly LiveClientApi _api;
+    private readonly ILiveClientApi _api;
     private readonly JsonSerializerOptions _jsonOptions;
 
-    public LiveClientObjectReader(LiveClientApi? api = null)
+    public LiveClientObjectReader(ILiveClientApi? api = null)
     {
         _api = api ?? new LiveClientApi();
         _jsonOptions = new JsonSerializerOptions
