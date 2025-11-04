@@ -4,14 +4,21 @@ This project is a personal non commercial fun/educational project. All rights an
 Also this project is not affiliated with Riot Games in any way and not approved by Riot Games or anyone else.
 So use at own risk..
 
-
 It is a Lightweight .NET 9 client for:
 - Live Client Data API (`/liveclientdata/...`) while a game is running.
 - League Client API (LCU) for lobby, champ select, and matchmaking.
 
 It runs locally, auto-discovers the League Client `lockfile`, builds the LCU base URL including Basic Auth, and exposes simple typed methods via `LiveClientObjectReader`.
 
-All documentation is in English.
+So the most important public clases are
+```
+BE.League.Desktop/
+├── LeagueDesktopClient.cs         # Unified wrapper (composits LiveClient and LcuClient)
+├── LiveClient/
+│   └── LiveClientApi.cs           # Port 2999 - In-Game API
+└── LcuClient/
+    └── LcuApi.cs                  # Dynamic Port - Client/Lobby API
+```
 
 ## Requirements
 - .NET 9 (`net9.0`)
@@ -81,7 +88,7 @@ Create a typed reader and call the desired endpoints. All methods are async and 
 
 ### Get the active player
 ```csharp
-var reader = new BE.Riot.Gateways.LeagueDesktop.LiveClientObjectReader();
+var reader = new LiveClientObjectReader();
 
 var activePlayer = await reader.GetActivePlayerAsync();
 if (activePlayer != null)
@@ -94,7 +101,7 @@ if (activePlayer != null)
 
 ### List all players
 ```csharp
-var reader = new BE.Riot.Gateways.LeagueDesktop.LiveClientObjectReader();
+var reader = new LiveClientObjectReader();
 
 var players = await reader.GetPlayerListAsync();
 if (players != null)
@@ -107,7 +114,7 @@ if (players != null)
 
 ### Recent game events
 ```csharp
-var reader = new BE.Riot.Gateways.LeagueDesktop.LiveClientObjectReader();
+var reader = new LiveClientObjectReader();
 
 var events = await reader.GetEventDataAsync();
 if (events?.EventsList != null)
@@ -122,7 +129,7 @@ if (events?.EventsList != null)
 
 ### Player-specific data (scores, items, spells)
 ```csharp
-var reader = new BE.Riot.Gateways.LeagueDesktop.LiveClientObjectReader();
+var reader = new LiveClientObjectReader();
 string summonerName = "Your Summoner";
 
 var scores = await reader.GetPlayerScoresAsync(summonerName);
@@ -149,7 +156,7 @@ if (spells != null)
 
 ### Game stats (map, mode, time)
 ```csharp
-var reader = new BE.Riot.Gateways.LeagueDesktop.LiveClientObjectReader();
+var reader = new LiveClientObjectReader();
 
 var game = await reader.GetGameStatsAsync();
 if (game != null)
@@ -162,7 +169,7 @@ if (game != null)
 
 ### Abilities and runes of the active player
 ```csharp
-var reader = new BE.Riot.Gateways.LeagueDesktop.LiveClientObjectReader();
+var reader = new LiveClientObjectReader();
 
 var abilities = await reader.GetActivePlayerAbilitiesAsync();
 if (abilities != null)
@@ -203,7 +210,7 @@ while (!cts.IsCancellationRequested)
 
 ### Accept ready check (LCU)
 ```csharp
-var reader = new BE.Riot.Gateways.LeagueDesktop.LiveClientObjectReader();
+var reader = new LiveClientObjectReader();
 
 var ready = await reader.GetReadyCheckAsync();
 if (ready != null)
@@ -215,13 +222,13 @@ if (ready != null)
 
 ### Custom options (timeout, injected connection)
 ```csharp
-var options = new BE.League.Desktop.LeagueDesktopOptions
+var options = new LeagueDesktopOptions
 {
-    Connection = BE.League.Desktop.LeagueClientConnectionInfo.GetFromRunningClient(),
+    Connection = LeagueClientConnectionInfo.GetFromRunningClient(),
     Timeout = TimeSpan.FromSeconds(5)
 };
 
-var reader = new BE.Riot.Gateways.LeagueDesktop.LiveClientObjectReader(options);
+var reader = new LiveClientObjectReader(options);
 var me = await reader.GetActivePlayerAsync();
 Console.WriteLine(me?.SummonerName ?? "N/A");
 ```
