@@ -4,14 +4,21 @@ This project is a personal non commercial fun/educational project. All rights an
 Also this project is not affiliated with Riot Games in any way and not approved by Riot Games or anyone else.
 So use at own risk..
 
-
 It is a Lightweight .NET 9 client for:
 - Live Client Data API (`/liveclientdata/...`) while a game is running.
 - League Client API (LCU) for lobby, champ select, and matchmaking.
 
 It runs locally, auto-discovers the League Client `lockfile`, builds the LCU base URL including Basic Auth, and exposes simple typed methods via `LiveClientObjectReader`.
 
-All documentation is in English.
+So the most important public clases are
+```
+BE.League.Desktop/
+├── LeagueDesktopClient.cs         # Unified wrapper (composits LiveClient and LcuClient)
+├── LiveClient/
+│   └── LiveClientApi.cs           # Port 2999 - In-Game API
+└── LcuClient/
+    └── LcuApi.cs                  # Dynamic Port - Client/Lobby API
+```
 
 ## Requirements
 - .NET 9 (`net9.0`)
