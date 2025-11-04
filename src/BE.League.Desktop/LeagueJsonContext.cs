@@ -19,7 +19,7 @@ namespace BE.League.Desktop;
 [JsonSerializable(typeof(GameData))]
 [JsonSerializable(typeof(Lobby))]
 [JsonSerializable(typeof(ChampSelectSession))]
-[JsonSerializable(typeof(ReadyCheckDto))]
+[JsonSerializable(typeof(ReadyCheck))]
 [JsonSerializable(typeof(LobbyMember))]
 [JsonSerializable(typeof(GameConfig))]
 [JsonSerializable(typeof(LobbyInvitation))]

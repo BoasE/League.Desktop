@@ -62,10 +62,10 @@ public sealed class LcuObjectReader
     /// <summary>
     /// Get ready check state
     /// </summary>
-    public async Task<ReadyCheckDto?> GetReadyCheckAsync(CancellationToken ct = default)
+    public async Task<ReadyCheck?> GetReadyCheckAsync(CancellationToken ct = default)
     {
         var json = await _api.GetReadyCheckJsonAsync(ct);
-        return Deserialize<ReadyCheckDto>(json);
+        return Deserialize<ReadyCheck>(json);
     }
 
     /// <summary>

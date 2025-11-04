@@ -62,7 +62,7 @@ public static class MonitorLoop
     private static async Task ReadCheck(LiveClientObjectReader reader, CancellationToken cancellationToken,
         LiveDisplayContext ctx, int acceptCount)
     {
-        ReadyCheckDto? readyCheck;
+        ReadyCheck? readyCheck;
         readyCheck = await _lcu.GetReadyCheckAsync(cancellationToken);
 
         if (CanClickAccept(readyCheck))
@@ -103,7 +103,7 @@ public static class MonitorLoop
     }
 
 
-    private static bool CanClickAccept(ReadyCheckDto? readyCheck)
+    private static bool CanClickAccept(ReadyCheck? readyCheck)
     {
         return readyCheck is { State: "InProgress" };
     }

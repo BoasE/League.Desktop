@@ -118,7 +118,7 @@ static Table CreateWaitingTable()
     return table;
 }
 
-static Layout CreateLobbyLayout(Lobby lobby, ChampSelectSession? champSelect, ReadyCheckDto? readyCheck)
+static Layout CreateLobbyLayout(Lobby lobby, ChampSelectSession? champSelect, ReadyCheck? readyCheck)
 {
     var layout = new Layout("Root")
         .SplitRows(
@@ -782,7 +782,7 @@ static void DisplayChampSelect(ChampSelectSession session)
     Console.WriteLine("└────────────────────────────────────────────────────────────────┘");
 }
 
-static async Task HandleReadyCheck(LcuObjectReader reader, ReadyCheckDto readyCheck)
+static async Task HandleReadyCheck(LcuObjectReader reader, ReadyCheck readyCheck)
 {
     if (readyCheck.State == "InProgress")
     {

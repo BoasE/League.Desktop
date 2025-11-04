@@ -7,7 +7,7 @@ public sealed class GivenReadyCheckDto
     [Fact]
     public void ItCanBeInstantiated()
     {
-        var sut = new ReadyCheckDto();
+        var sut = new ReadyCheck();
         
         Assert.NotNull(sut);
     }
@@ -18,7 +18,7 @@ public sealed class GivenReadyCheckDto
     [InlineData("Declined")]
     public void ItCanSetState(string state)
     {
-        var sut = new ReadyCheckDto { State = state };
+        var sut = new ReadyCheck { State = state };
         
         Assert.Equal(state, sut.State);
     }
@@ -26,7 +26,7 @@ public sealed class GivenReadyCheckDto
     [Fact]
     public void ItHasNullStateByDefault()
     {
-        var sut = new ReadyCheckDto();
+        var sut = new ReadyCheck();
         
         Assert.Null(sut.State);
     }
