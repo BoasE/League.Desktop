@@ -1,6 +1,11 @@
 # BE.League.Desktop
 
-Lightweight .NET 9 client for:
+This project is a personal non commercial fun/educational project. All rights any thing realted to League of Legends are owned by Riot Games.
+Also this project is not affiliated with Riot Games in any way and not approved by Riot Games or anyone else.
+So use at own risk..
+
+
+It is a Lightweight .NET 9 client for:
 - Live Client Data API (`/liveclientdata/...`) while a game is running.
 - League Client API (LCU) for lobby, champ select, and matchmaking.
 
@@ -244,3 +249,7 @@ Run it from your IDE or via the .NET CLI as shown above.
 - Target framework: `net9.0`.
 - If you want to force the classic Live Client Data API port `2999`, provide a custom gateway or `LeagueDesktopOptions` that points the `_httpClient` to that port.
 
+## Documentation
+
+- 📚 [LCU&Live Api](src/BE.League.Desktop/API_SEPARATION.md) - Sepearted Api Classes
+- 📚 [API References](src/BE.League.Desktop/ApiReferences.md) - Complete API documentation for LCU and Live Client APIs

@@ -31,25 +31,85 @@ Automatically accepts ready checks in League of Legends with a clean, modular ar
 
 ### Build & Publish
 
+> 📘 **Detaillierte Publish-Anleitung**: Siehe [PUBLISH.md](PUBLISH.md) für eine vollständige Übersicht aller Optionen und Empfehlungen.
+
 **Build for development:**
 ```cmd
 dotnet build -c Release
 ```
 
-**Publish as single-file executable:**
+#### Quick Build (Windows)
+
+Doppelklick auf `build.bat` für automatisches Publishing mit empfohlenen Einstellungen.
+
+Das Skript erstellt automatisch eine optimierte, verteilbare .exe Datei.
+
+#### Recommended: Schlanke Distribution mit Trimming (Empfohlen)
+
+**Best Practice für Windows-Distribution ohne .NET Installation:**
+```cmd
+dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true /p:TrimMode=partial
+```
+- ✅ **Klein** (~17 MB einzelne .exe Datei)
+- ✅ **Keine .NET Runtime erforderlich**
+- ✅ **Maximale Kompatibilität**
+- ✅ **Einfache Distribution**
+
+#### Weitere Optionen
+
+**Option 1: Native AOT (Kleinste & Schnellste Variante)**
+```cmd
+dotnet publish -c Release -r win-x64 /p:PublishAot=true
+```
+- ✅ **Sehr klein** (~8-15 MB)
+- ✅ **Sehr schneller Start** (keine JIT-Kompilierung)
+- ✅ **Keine .NET Runtime erforderlich**
+- ✅ **Einzelne .exe Datei**
+- ⚠️ Funktioniert nur mit AOT-kompatiblem Code
+
+**Option 2: Self-Contained + Trimmed (Empfohlen für Kompatibilität)**
+```cmd
+dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true /p:TrimMode=partial
+```
+- ✅ **Klein** (~20-30 MB)
+- ✅ **Keine .NET Runtime erforderlich**
+- ✅ **Einzelne .exe Datei**
+- ✅ **Maximale Kompatibilität**
+
+**Option 3: Framework-Dependent (Benötigt .NET 9.0 Runtime)**
 ```cmd
 dotnet publish -c Release -r win-x64 --self-contained false /p:PublishSingleFile=true
 ```
+- ✅ **Sehr klein** (~5 MB)
+- ⚠️ Benutzer muss .NET 9.0 Runtime installiert haben
 
-The executable will be located at:
+#### Output-Verzeichnisse
+
+Die ausführbare Datei befindet sich in:
 ```
 bin\Release\net9.0\win-x64\publish\BE.League.Desktop.AutoAccept.exe
 ```
 
-**Publish as self-contained (no .NET runtime required):**
+#### Größenvergleich
+
+| Methode | Größe | .NET benötigt? | Startzeit |
+|---------|-------|----------------|-----------|
+| Native AOT | ~8-15 MB | ❌ Nein | Sehr schnell |
+| Self-Contained + Trimmed | ~20-30 MB | ❌ Nein | Schnell |
+| Self-Contained (ohne Trim) | ~60-80 MB | ❌ Nein | Normal |
+| Framework-Dependent | ~5 MB | ✅ Ja | Normal |
+
+#### Empfehlung für Distribution
+
+Für die beste Balance zwischen Größe und Kompatibilität:
 ```cmd
-dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
+dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true /p:TrimMode=partial /p:EnableCompressionInSingleFile=true
 ```
+
+Weitere Runtime Identifiers für andere Plattformen:
+- `win-x64` - Windows 64-bit (Standard)
+- `win-x86` - Windows 32-bit
+- `win-arm64` - Windows ARM64 (Surface Pro X, etc.)
 
 ## Architecture
 

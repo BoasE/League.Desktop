@@ -5,6 +5,18 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        
+        <!-- Native AOT Configuration -->
+        <PublishAot>true</PublishAot>
+        <InvariantGlobalization>false</InvariantGlobalization>
+        <IlcOptimizationPreference>Size</IlcOptimizationPreference>
+        <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
+        
+        <!-- Trim warnings as errors to catch AOT issues early -->
+        <TrimmerSingleWarn>false</TrimmerSingleWarn>
+        
+        <!-- JSON Source Generator Support -->
+        <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
     </PropertyGroup>
 
     <ItemGroup>
