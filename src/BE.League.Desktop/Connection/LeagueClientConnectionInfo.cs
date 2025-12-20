@@ -24,6 +24,22 @@ public sealed class LeagueClientConnectionInfo
         return connection;
     }
 
+    public static bool IsLeagueClientRunning()
+    {
+        var path = ClientHelper.ResolveLockfilePath(null);
+        var file = ClientHelper.ReadLockfile(path);
+
+        return file != null;
+    }
+
+    public static async Task WaitForLeagueClient(CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested && !IsLeagueClientRunning())
+        {
+            await Task.Delay(2000, cancellationToken);
+        }
+    }
+
 
     private static LeagueClientConnectionInfo? ConnectionByLockFile()
     {

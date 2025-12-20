@@ -19,6 +19,7 @@ public class LcuEventLoop
 
     public LcuEventLoop(LcuObjectReader? lcu = null)
     {
+        
         _lcu = lcu ?? new LcuObjectReader();
     }
 

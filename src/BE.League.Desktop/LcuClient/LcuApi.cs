@@ -41,6 +41,8 @@ public sealed class LcuApi : IDisposable, ILcuApi
 
         _httpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {credentials}");
     }
+    
+
 
     /// <summary>
     /// Get current lobby information
