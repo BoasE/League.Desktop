@@ -1,32 +1,59 @@
 ﻿using BE.League.Desktop.Connection;
-using BE.League.Desktop.LiveClient;
-using BE.League.Desktop.LcuClient;
+using BE.League.Desktop.GameClientApi;
+using BE.League.Desktop.LeagueClientApi;
 
 namespace BE.League.Desktop;
 
 /// <summary>
-/// Unified client for League of Legends Desktop integration
-/// Provides access to both Live Client Data API (in-game) and LCU API (client/lobby)
+/// Unified facade for League of Legends Desktop integration.
+/// <para>
+/// Provides access to both local APIs exposed by the League of Legends client:
+/// </para>
+/// <list type="bullet">
+///   <item>
+///     <see cref="GameClient"/> — the
+///     <see href="https://developer.riotgames.com/docs/lol#game-client-api">Game Client API</see>
+///     (port 2999, in-game real-time data, no auth required)
+///   </item>
+///   <item>
+///     <see cref="LeagueClient"/> — the
+///     <see href="https://developer.riotgames.com/docs/lol#league-client-api">League Client API</see>
+///     (dynamic port from lockfile, lobby/matchmaking/champ-select, Basic Auth required)
+///   </item>
+/// </list>
 /// </summary>
 public sealed class LeagueDesktopClient : ILeagueDesktopClient
 {
-    public LiveClientObjectReader LiveClient { get; }
-    public LcuObjectReader LcuClient { get; }
-    
-    public LeagueDesktopClient(LiveClientObjectReader liveClient, LcuObjectReader lcuClient)
+    /// <summary>
+    /// Game Client API reader — real-time in-game data (port 2999).
+    /// </summary>
+    public GameClientApiReader GameClient { get; }
+
+    /// <summary>
+    /// League Client API reader — lobby, matchmaking, and champion select data.
+    /// </summary>
+    public LeagueClientApiReader LeagueClient { get; }
+
+    /// <summary>
+    /// DI-friendly constructor — accepts pre-built readers for both APIs.
+    /// </summary>
+    public LeagueDesktopClient(GameClientApiReader gameClient, LeagueClientApiReader leagueClient)
     {
-        LiveClient = liveClient;
-        LcuClient = lcuClient;
+        GameClient = gameClient;
+        LeagueClient = leagueClient;
     }
-    
+
+    /// <summary>
+    /// Convention constructor — auto-discovers the League Client connection from the lockfile
+    /// and creates both API readers from <paramref name="options"/>.
+    /// </summary>
     public LeagueDesktopClient(LeagueDesktopOptions? options = null)
     {
         options ??= new LeagueDesktopOptions();
-        
-       
-        LiveClient = new LiveClientObjectReader(options);
-        
-        var lcuApi = new LcuApi(options.Connection, options.Timeout);
-        LcuClient = new LcuObjectReader(lcuApi);
+
+        GameClient = new GameClientApiReader(options);
+
+        var lcuApi = new LeagueClientApiClient(options.Connection, options.Timeout);
+        LeagueClient = new LeagueClientApiReader(lcuApi);
     }
 }

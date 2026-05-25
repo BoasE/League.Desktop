@@ -3,8 +3,12 @@
 namespace BE.League.Desktop.IntegrationTests;
 
 /// <summary>
-/// Integration tests for LCU (League Client Update) API.
-/// PREREQUISITE: Must be in League Client (can be in lobby or menu).
+/// Integration tests for the League Client API (LCU).
+/// PREREQUISITE: Must be in the League Client (lobby or menu).
+/// <para>
+/// Tests the <see href="https://developer.riotgames.com/docs/lol#league-client-api">League Client API</see>
+/// on its dynamic port discovered from the lockfile.
+/// </para>
 /// </summary>
 public class WhenInLeagueClient
 {
@@ -38,11 +42,10 @@ public class WhenInLeagueClient
         if (!_isClientRunning) return; // Skip if client not running
         Assert.NotNull(_sut);
 
-        // This should not throw even if not in lobby (returns null/error response)
-        await _sut.LcuClient.Api.GetLobbyJsonAsync();
+        // Returns null if not in a lobby, but must not throw
+        await _sut.LeagueClient.Api.GetLobbyJsonAsync();
 
-        // Test passes if no exception is thrown
-        Assert.True(true, "LCU API call completed without exception");
+        Assert.True(true, "League Client API call completed without exception");
     }
 
     [Fact]
@@ -51,11 +54,10 @@ public class WhenInLeagueClient
         if (!_isClientRunning) return; // Skip if client not running
         Assert.NotNull(_sut);
 
-        // This should not throw even if not in champ select
-        await _sut.LcuClient.Api.GetChampSelectSessionJsonAsync();
+        // Returns null if not in champ select, but must not throw
+        await _sut.LeagueClient.Api.GetChampSelectSessionJsonAsync();
 
-        // Test passes if no exception is thrown
-        Assert.True(true, "LCU API call completed without exception");
+        Assert.True(true, "League Client API call completed without exception");
     }
 
     [Fact]
@@ -64,10 +66,9 @@ public class WhenInLeagueClient
         if (!_isClientRunning) return; // Skip if client not running
         Assert.NotNull(_sut);
 
-        // This should not throw even if no ready check active
-        await _sut.LcuClient.Api.GetReadyCheckJsonAsync();
+        // Returns null if no ready check active, but must not throw
+        await _sut.LeagueClient.Api.GetReadyCheckJsonAsync();
 
-        // Test passes if no exception is thrown
-        Assert.True(true, "LCU API call completed without exception");
+        Assert.True(true, "League Client API call completed without exception");
     }
 }

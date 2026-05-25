@@ -1,40 +1,57 @@
 # League of Legends Local APIs Overview
 
-This project integrates **both** the League of Legends **Live Client Data API** and the **League Client Update (LCU) API** to access in-game and client-side data.
+This project integrates **both** local APIs exposed by a running League of Legends installation:
+the **Game Client API** for real-time in-game data, and the
+**League Client API** for desktop client state (lobby, matchmaking, champion select).
 
 ---
 
-## 🧠 1. Live Client Data API (Port 2999)
+## 🎮 1. Game Client API (Port 2999)
 
 **Official Documentation:**
-- [Main Documentation](https://developer.riotgames.com/docs/lol#game-client-api)
-- [Swagger/OpenAPI Spec](https://static.developer.riotgames.com/docs/lol/liveclientdata_sample.json)
+- [Riot Games — Game Client API](https://developer.riotgames.com/docs/lol#game-client-api)
+- [OpenAPI / Swagger spec](https://static.developer.riotgames.com/docs/lol/liveclientdata_sample.json)
 
 **Summary:**
-The **Live Client Data API** runs on port **2999** and is available **only during an active game**.  
+The **Game Client API** runs on fixed port **2999** and is available **only during an active game**.
 It does **not require authentication** and provides real-time game information.
 
-**Features:**
-- Player states (active player and all players)
-- Champion abilities, items, and runes
-- Game statistics and events
-- Game score and time
+**Base URL:** `https://127.0.0.1:2999`
 
-**Base URL:**  
-- https://127.0.0.1:2999
+**Features:**
+- Local (active) player state — stats, gold, level, abilities, runes
+- All players list — champions, items, KDA, summoner spells
+- Game events — kills, dragon, baron, inhibitor, etc.
+- Game metadata — mode, map name, current game time
+
+**Key classes:**
+
+| Class | Role |
+|-------|------|
+| `IGameClientApi` | Raw JSON interface |
+| `GameClientApiClient` | HttpClient transport (no auth, self-signed cert bypass) |
+| `GameClientApiReader` | Typed deserializer → `AllGameData`, `ActivePlayer`, etc. |
 
 ---
 
-## ⚙️ 2. League Client Update (LCU) API
+## 🖥️ 2. League Client API (LCU)
 
-**Other Documentation:**
-- [Hextech Docs (comprehensive)](https://hextechdocs.dev/)
+**Official Documentation:**
+- [Riot Games — League Client API](https://developer.riotgames.com/docs/lol#league-client-api)
+
+**Community Resources:**
+- [HexTech Docs](https://hextechdocs.dev/) — comprehensive LCU endpoint reference
+- [Needlework.net](https://github.com/BlossomiShymae/Needlework.Net) — interactive LCU browser
+- Swagger UI (inside the running client):
+  - `{localaddress}/swagger/v2/swagger.json`
+  - `{localaddress}/swagger/v3/swagger.json`
 
 **Summary:**
-The **LCU API** is the internal REST API used by the League of Legends **desktop client**.  
-It runs on a **dynamic port** (specified in the `lockfile`) and requires **Basic Authentication** using the token stored there.
+The **League Client API** is the internal REST API used by the League of Legends **desktop client**.
+It runs on a **dynamic port** (specified in the `lockfile`) and requires **Basic Authentication**
+using the token stored there.
 
-
+**Authentication:** `Authorization: Basic <base64("riot:<token>")>`
 
 **Key Features:**
 - Lobby management (create, join, leave)
@@ -43,56 +60,84 @@ It runs on a **dynamic port** (specified in the `lockfile`) and requires **Basic
 - Summoner data (profile, ranked stats, match history)
 - Store & loot (purchases, Hextech crafting)
 
+**Key classes:**
+
+| Class | Role |
+|-------|------|
+| `ILeagueClientApi` | Raw JSON interface |
+| `LeagueClientApiClient` | HttpClient transport (Basic Auth, dynamic port, self-signed cert bypass) |
+| `LeagueClientApiReader` | Typed deserializer → `Lobby`, `ChampSelectSession`, `ReadyCheck` |
+| `LeagueClientApiEventLoop` | Polling loop — fires `LobbyChanged` / `ReadyCheckChanged` events |
+
 ---
-## **LCU Port Discovery via Lockfile**
 
-### **Overview**
-The LCU API uses a **dynamic port** that changes each time the League Client starts. To connect to the API, applications must read the `lockfile` created by the client at startup.
+## 🔑 LCU Port Discovery via Lockfile
 
-### **Lockfile Location**
-The lockfile is typically located at:
+### Overview
+The League Client API uses a **dynamic port** that changes each time the League Client starts.
+Applications must read the `lockfile` created at startup to discover the port and auth token.
+
+### Lockfile Location
 - **Windows**: `C:\Riot Games\League of Legends\lockfile`
 - **macOS**: `~/Library/Application Support/Riot Games/League of Legends/lockfile`
 - **General**: `<LeagueInstallDir>/lockfile`
 
-### **Lockfile Format**
-The file contains a single line with colon-separated values:
+### Lockfile Format
+Single line, colon-separated:
+```
 ProcessName:ProcessID:Port:Password:Protocol
+```
 **Example:**
+```
 LeagueClientUx:12345:54321:a1b2c3d4e5f6:https
+```
 
+### Connection Steps
+1. Read the lockfile
+2. Parse: **port**, **password/token**, **protocol**
+3. Base URL: `https://127.0.0.1:<port>`
+4. Auth header: `Authorization: Basic <base64("riot:<token>")>`
 
-### **Connection Steps**
-1. **Read the lockfile** from the League Client installation directory
-2. **Parse the values**:
-    - Port number (e.g., `54321`)
-    - Authentication token/password (e.g., `a1b2c3d4e5f6`)
-    - Protocol (usually `https`)
-3. **Construct the base URL**: `https://127.0.0.1:<port>`
-4. **Authenticate** using Basic Authentication:
-    - Username: `riot`
-    - Password: `<token from lockfile>`
-    - Header: `Authorization: Basic <base64(riot:token)>`
+### Lifecycle
+- Lockfile **created** when League Client launches
+- Lockfile **deleted** when the client closes
+- File presence = reliable indicator that the client is running
 
-### **Lifecycle**
-- The lockfile is **created** when the League Client launches
-- The lockfile is **deleted** when the client closes
-- File presence = reliable indicator of whether the client is running
---
-## 🧰 Additional Resources
+### Discovery in this library
 
-- [Needlework.net](https://github.com/BlossomiShymae/Needlework.Net) – interactive browser for exploring LCU endpoints
-- **Swagger UI (inside the client):**  
-  - {localaddress}/swagger/v2/swagger.json
-  - {localaddress}/swagger/v3/swagger.json
-- **Community Discord:** [Riot Games Third Party Developer Community](https://discord.gg/riotgamesdevrel)
+```csharp
+// Returns null if the client is not running
+var connection = LeagueClientConnectionInfo.GetFromRunningClient();
+
+// Poll until running
+await LeagueClientConnectionInfo.WaitForLeagueClient(cancellationToken);
+```
 
 ---
 
-## 🎮 Integration Overview
+## 🧰 Additional Resources
 
-This project uses:
-- **Live Client Data API** → for real-time **in-game** data
-- **LCU API** → for **client and lobby** management
+- [Riot Developer Portal](https://developer.riotgames.com/docs/lol) — Official LoL docs
+- [HexTech Docs](https://hextechdocs.dev/) — Community LCU endpoint reference
+- [Needlework.net](https://github.com/BlossomiShymae/Needlework.Net) — Interactive LCU browser
+- [Community Discord](https://discord.gg/riotgamesdevrel) — Riot Games Third Party Developer Community
 
-Together, these provide a full spectrum of interaction from **lobby creation** to **live match monitoring**.
+---
+
+## 🏗️ Integration Overview
+
+| API | Use case | Namespace |
+|-----|----------|-----------|
+| **Game Client API** | Real-time in-game data | `BE.League.Desktop.GameClientApi` |
+| **League Client API** | Lobby & client management | `BE.League.Desktop.LeagueClientApi` |
+
+```csharp
+using var client = new LeagueDesktopClient();
+
+// In-game data (Game Client API)
+var gameData = await client.GameClient.GetAllGameDataAsync();
+
+// Lobby/client data (League Client API)
+var lobby = await client.LeagueClient.GetLobbyAsync();
+await client.LeagueClient.AcceptReadyCheckAsync();
+```

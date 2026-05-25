@@ -4,7 +4,11 @@ namespace BE.League.Desktop.IntegrationTests;
 
 /// <summary>
 /// Integration tests that require an active League of Legends game.
-/// PREREQUISITE: Must be in an active game (not just in client lobby).
+/// PREREQUISITE: Must be in an active game (Practice Tool, Custom, or matchmade).
+/// <para>
+/// Tests the <see href="https://developer.riotgames.com/docs/lol#game-client-api">Game Client API</see>
+/// on port 2999.
+/// </para>
 /// </summary>
 public class WhenInActiveGame
 {
@@ -25,7 +29,7 @@ public class WhenInActiveGame
                 });
 
                 // Check if actually in game by trying to get active player name
-                var playerName = _sut.LiveClient.Api.GetActivePlayerNameJsonAsync().GetAwaiter().GetResult();
+                var playerName = _sut.GameClient.Api.GetActivePlayerNameJsonAsync().GetAwaiter().GetResult();
                 _isInGame = !string.IsNullOrEmpty(playerName);
             }
         }
@@ -41,7 +45,7 @@ public class WhenInActiveGame
         if (!_isInGame) return; // Skip if not in game
         Assert.NotNull(_sut);
 
-        var result = await _sut.LiveClient.Api.GetActivePlayerNameJsonAsync();
+        var result = await _sut.GameClient.Api.GetActivePlayerNameJsonAsync();
 
         Assert.NotNull(result);
         Assert.NotEmpty(result);
@@ -53,7 +57,7 @@ public class WhenInActiveGame
         if (!_isInGame) return; // Skip if not in game
         Assert.NotNull(_sut);
 
-        var result = await _sut.LiveClient.Api.GetGameStatsJsonAsync();
+        var result = await _sut.GameClient.Api.GetGameStatsJsonAsync();
 
         Assert.NotNull(result);
         Assert.Contains("gameTime", result);
@@ -65,10 +69,10 @@ public class WhenInActiveGame
         if (!_isInGame) return; // Skip if not in game
         Assert.NotNull(_sut);
 
-        var result = await _sut.LiveClient.Api.GetPlayerListJsonAsync();
+        var result = await _sut.GameClient.Api.GetPlayerListJsonAsync();
 
         Assert.NotNull(result);
-        Assert.Contains("[", result); // Should be JSON array
+        Assert.Contains("[", result); // Should be a JSON array
     }
 
     [Fact]
@@ -77,7 +81,7 @@ public class WhenInActiveGame
         if (!_isInGame) return; // Skip if not in game
         Assert.NotNull(_sut);
 
-        var result = await _sut.LiveClient.Api.GetActivePlayerJsonAsync();
+        var result = await _sut.GameClient.Api.GetActivePlayerJsonAsync();
 
         Assert.NotNull(result);
         Assert.Contains("summonerName", result);
@@ -90,7 +94,7 @@ public class WhenInActiveGame
         if (!_isInGame) return; // Skip if not in game
         Assert.NotNull(_sut);
 
-        var result = await _sut.LiveClient.Api.GetAllGameDataJsonAsync();
+        var result = await _sut.GameClient.Api.GetAllGameDataJsonAsync();
 
         Assert.NotNull(result);
         Assert.Contains("activePlayer", result);

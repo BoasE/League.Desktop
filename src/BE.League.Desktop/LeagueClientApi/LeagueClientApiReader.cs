@@ -2,22 +2,34 @@
 using BE.League.Desktop.Connection;
 using BE.League.Desktop.Models;
 
-namespace BE.League.Desktop.LcuClient;
+namespace BE.League.Desktop.LeagueClientApi;
 
 /// <summary>
-/// Object reader for LCU API (League Client Update)
-/// Deserializes JSON responses into strongly-typed models
+/// Typed reader for the League Client API (LCU).
+/// <para>
+/// Wraps <see cref="ILeagueClientApi"/> and deserializes raw JSON responses into
+/// strongly-typed models using <c>System.Text.Json</c> with AOT-compatible source generation.
+/// </para>
+/// <para>
+/// Official documentation:
+/// <see href="https://developer.riotgames.com/docs/lol#league-client-api">
+/// Riot Games — League Client API
+/// </see>
+/// </para>
 /// </summary>
-public sealed class LcuObjectReader
+public sealed class LeagueClientApiReader
 {
-    private readonly ILcuApi _api;
+    private readonly ILeagueClientApi _api;
     private readonly JsonSerializerOptions _jsonOptions;
 
-    public ILcuApi Api => _api;
+    /// <summary>
+    /// Exposes the underlying raw JSON API for direct access.
+    /// </summary>
+    public ILeagueClientApi Api => _api;
 
-    public LcuObjectReader(ILcuApi? api = null, LeagueClientConnectionInfo? connectionInfo = null)
+    public LeagueClientApiReader(ILeagueClientApi? api = null, LeagueClientConnectionInfo? connectionInfo = null)
     {
-        _api = api ?? new LcuApi(connectionInfo);
+        _api = api ?? new LeagueClientApiClient(connectionInfo);
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
@@ -36,13 +48,14 @@ public sealed class LcuObjectReader
         }
         catch (JsonException ex)
         {
-            System.Diagnostics.Debug.WriteLine($"LCU API JSON Error: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"League Client API JSON deserialization error: {ex.Message}");
             return null;
         }
     }
 
     /// <summary>
-    /// Get current lobby information
+    /// Get current lobby information.
+    /// <para>Endpoint: <c>GET /lol-lobby/v2/lobby</c></para>
     /// </summary>
     public async Task<Lobby?> GetLobbyAsync(CancellationToken ct = default)
     {
@@ -51,7 +64,8 @@ public sealed class LcuObjectReader
     }
 
     /// <summary>
-    /// Get current champion select session
+    /// Get the current champion select session.
+    /// <para>Endpoint: <c>GET /lol-champ-select/v1/session</c></para>
     /// </summary>
     public async Task<ChampSelectSession?> GetChampSelectSessionAsync(CancellationToken ct = default)
     {
@@ -60,7 +74,8 @@ public sealed class LcuObjectReader
     }
 
     /// <summary>
-    /// Get ready check state
+    /// Get the current ready-check state.
+    /// <para>Endpoint: <c>GET /lol-matchmaking/v1/ready-check</c></para>
     /// </summary>
     public async Task<ReadyCheck?> GetReadyCheckAsync(CancellationToken ct = default)
     {
@@ -69,7 +84,8 @@ public sealed class LcuObjectReader
     }
 
     /// <summary>
-    /// Accept ready check (when game is found)
+    /// Accept a ready check (when a game has been found).
+    /// <para>Endpoint: <c>POST /lol-matchmaking/v1/ready-check/accept</c></para>
     /// </summary>
     public async Task<bool> AcceptReadyCheckAsync(CancellationToken ct = default)
     {
@@ -77,10 +93,12 @@ public sealed class LcuObjectReader
     }
 
     /// <summary>
-    /// Decline ready check
+    /// Decline a ready check.
+    /// <para>Endpoint: <c>POST /lol-matchmaking/v1/ready-check/decline</c></para>
     /// </summary>
     public async Task<bool> DeclineReadyCheckAsync(CancellationToken ct = default)
     {
         return await _api.DeclineReadyCheckAsync(ct);
     }
 }
+

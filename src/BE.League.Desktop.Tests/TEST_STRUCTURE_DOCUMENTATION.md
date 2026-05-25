@@ -18,10 +18,9 @@ This documentation describes the test structure, naming conventions, and tools u
 ```
 
 ### Tool Overview
-- **xUnit**: Test framework (primary framework)
-- **FakeItEasy**: Mocking framework
-- **Coverlet**: Code coverage tool
-- **Microsoft.NET.Test.Sdk**: Test SDK for .NET
+- **BE.League.Desktop.Tests/**: Unit tests — `ModelTests/` for model deserialization, `LeagueClientApi/` for the event loop.
+- **xUnit**: Test framework with `[Fact]` / `[Theory]` attributes.
+- **FakeItEasy**: Mock `ILeagueClientApi` and `IGameClientApi` interfaces for event loop and reader tests.
 
 ---
 
@@ -86,13 +85,8 @@ public void NonFlawlessNonEmptyTasks_FiltersCorrectly() { }
 
 ```
 BE.League.Desktop.Tests/
-├── LiveClientObjectReaderTests/    # Tests for reader/deserializer
-│   ├── GivenLiveClientObjectReader.cs
-│   ├── WhenDeserializingAllGameData.cs
-│   ├── WhenDeserializingActivePlayer.cs
-│   ├── WhenDeserializingPlayerList.cs
-│   ├── WhenDeserializingChampSelectSession.cs
-│   └── ... (organized by API method/data type)
+├── LeagueClientApi/                # Tests for the League Client API event loop
+│   └── GivenLeagueClientApiEventLoop.cs
 └── ModelTests/                     # Tests for data models
     ├── GivenChampSelectSession.cs
     ├── GivenLiveEvent.cs
@@ -464,7 +458,7 @@ public void ItHasUpNextNonNull() =>
 - [ ] **Test data**: Constants, factory methods, static test objects
 - [ ] **Folder structure**: Nested folders for sub-features
 
-### For API/Reader Classes (like LiveClientObjectReader):
+### For API/Reader Classes (like `GameClientApiReader` or `LeagueClientApiReader`):
 
 - [ ] **Create folder**: `{ComponentName}Tests/` (e.g., `LiveClientObjectReaderTests/`)
 - [ ] **Base test class**: `Given{ComponentName}.cs` with mocked dependencies
@@ -617,7 +611,7 @@ public async Task GetDataAsync_WithCancellationToken_PassesTokenToGateway() { }
 
 ---
 
-**Version**: 1.0  
-**Last Updated**: 2025-10-31  
-**Projects**:  BE.League.Desktop
+**Version**: 1.1
+**Last Updated**: 2026-05-25
+**Projects**: BE.League.Desktop
 

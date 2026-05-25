@@ -6,7 +6,7 @@ namespace BE.League.Desktop.IntegrationTests;
 /// Integration tests for LeagueDesktopClient.
 /// PREREQUISITE: League of Legends must be running on the same machine.
 /// </summary>
-public class GivenLeagueDesktopClient 
+public class GivenLeagueDesktopClient
 {
     private readonly LeagueDesktopClient? _sut;
     private readonly bool _isLeagueRunning;
@@ -45,28 +45,24 @@ public class GivenLeagueDesktopClient
     }
 
     [Fact]
-    public async Task ItCanConnectToLiveClientDataApi()
+    public async Task ItCanConnectToGameClientApi()
     {
         Assert.NotNull(_sut);
 
-        // Try to get active player name - this should work if a game is running
-        // or return null if in lobby
-        await _sut.LiveClient.Api.GetActivePlayerNameJsonAsync();
+        // Try to get active player name — returns null when not in a game, but must not throw
+        await _sut.GameClient.Api.GetActivePlayerNameJsonAsync();
 
-        // We just verify that the call doesn't throw an exception
-        // Result can be null if not in game
-        Assert.True(true, "Connection to Live Client Data API successful");
+        Assert.True(true, "Connection to Game Client API successful");
     }
 
     [Fact]
-    public async Task ItCanGetLobbyInformation()
+    public async Task ItCanConnectToLeagueClientApi()
     {
         Assert.NotNull(_sut);
 
-        // Try to get lobby information via LCU API
-        await _sut.LcuClient.Api.GetLobbyJsonAsync();
+        // Try to get lobby information — returns null when not in a lobby, but must not throw
+        await _sut.LeagueClient.Api.GetLobbyJsonAsync();
 
-        // Result can be null if not in lobby, but the call should not throw
-        Assert.True(true, "Connection to LCU API successful");
+        Assert.True(true, "Connection to League Client API successful");
     }
 }
