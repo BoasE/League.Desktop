@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net10.0-windows</TargetFramework>
+        <UseWindowsForms>true</UseWindowsForms>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>13.0</LangVersion>
+        <ApplicationDefaultFont>Segoe UI, 9pt</ApplicationDefaultFont>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\BE.League.Desktop\BE.League.Desktop.csproj" />
+    </ItemGroup>
+
+</Project>
+

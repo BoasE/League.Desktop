@@ -6,6 +6,8 @@ public sealed class ChampSelectSession
     public int LocalPlayerCellId { get; set; }
     public List<List<ActionObj>> Actions { get; set; } = new();
     public List<TeamMember> MyTeam { get; set; } = new();
+    /// <summary>Enemy team — available during champion select.</summary>
+    public List<TeamMember> TheirTeam { get; set; } = new();
     public int? MySelectionChampionId { get; set; }
     public int? MyLockedChampionId { get; set; }
     public int? MyTeamIntentChampionId { get; set; }
